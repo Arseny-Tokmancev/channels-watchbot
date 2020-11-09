@@ -6,9 +6,7 @@ from data.models import Channel
 def register(app):
     @app.on_message(filters.channel)
     def update_time(client, message):
-        try:
-            channel = Channel.objects.get(id=message.chat.id)
-        except Exception as e:
-            print(e)
-        channel.last_message_time = timezone.now()
-        channel.save()
+        for channel in Channel.objects.filter(channel_id=message.chat.id):
+            channel.last_message_time = timezone.now()
+            channel.alerts_left       = channel.alert_times + 1
+            channel.save()

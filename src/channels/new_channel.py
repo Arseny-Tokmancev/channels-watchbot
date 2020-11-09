@@ -38,7 +38,7 @@ def register(app):
                 'добавлен в администраторы канала. '
             )
             return
-        channel, created = message.data_chat.channel_set.get_or_create(id=message.forward_from_chat.id)
+        channel, created = message.data_chat.channel_set.get_or_create(channel_id=message.forward_from_chat.id)
         if created:
             message.data_chat.wait_forward       = False
             message.data_chat.wait_time          = True
@@ -84,5 +84,5 @@ def register(app):
         client.send_message(
             message.chat.id,
             'Время сохранено! '
-            f'Теперь я буду отправлять Вам уведомления, если канал не будет отправлять сообщения в течение {period} минут.'
+            f'Теперь я буду отправлять Вам уведомления, если канал **{client.get_chat(channel.channel_id).title}** не будет отправлять сообщения в течение **{period}** минут.'
         )

@@ -1,3 +1,5 @@
 *.session
+*.session-journal
 *.sqlite3
 /.idea/
+/venv/
