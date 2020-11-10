@@ -1,9 +1,7 @@
 import asyncio
 from pyrogram import filters
 from pyrogram.raw.functions.messages import EditMessage
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from filters import add_chat_to_update
 from .show_channel import show_channel
 
 from data.models import Channel

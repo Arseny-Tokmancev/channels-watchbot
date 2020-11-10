@@ -5,5 +5,5 @@ def register(app):
     from . import choose_channel
     choose_channel.register(app)
 
-    from . import functions
-    functions.register(app)
+    from . import actions
+    actions.register(app)

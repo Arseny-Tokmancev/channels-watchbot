@@ -1,7 +1,7 @@
 from pyrogram import filters
 
 from data.models import Chat
-from filters import add_chat_to_update
+from channels_watchbot.utils import add_chat_to_update
 
 def register(app):
     @app.on_callback_query(
