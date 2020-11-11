@@ -1,7 +1,11 @@
 from pyrogram import filters
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from data.models import Chat
+from data.models import Chat, Channel
 from channels_watchbot.utils import add_chat_to_update
+
+from ..show_channel import show_channel
+
 
 def register(app):
     @app.on_callback_query(
@@ -9,21 +13,29 @@ def register(app):
     )
     def change_alerts(client, update):
         chat = Chat.objects.get(id=update.message.chat.id)
-        chat.current_channel_id = int(update.data.split(' ')[1])
+        channel_id = int(update.data.split(' ')[1])
+        channel = Channel.objects.get(id=channel_id)
+        chat.current_channel_id = channel_id
         chat.wait_alerts = True
         chat.save()
-        update.edit_message_text('Как часто нужно повторять  отправку уведомлений?')
+
+        update.edit_message_text(
+            f'Текущee количество повторений: **{channel.alert_times}**\n'
+            'Отправьте мне ответным сообщением новое количество',
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton('Отменить ❌', f'cancel_alerts {channel_id}')],
+            ])
+        )
 
 
     @app.on_message(
-        (filters.private | filters.group) &
-        add_chat_to_update &
-        filters.text &
-        filters.create(lambda a,b,x: x.data_chat.wait_alerts)
-        # filters.regex('\d+')
+        (filters.private | filters.group)
+        & add_chat_to_update
+        & filters.text
+        & filters.create(lambda a,b,x: x.data_chat.wait_alerts)
+        & filters.regex(r'\d+')
     )
     def wait_alerts(client, message):
-        print('wait_alerts')
         try:
             new_alerts = int(message.text)
         except Exception as e:
@@ -38,4 +50,31 @@ def register(app):
         channel.save()
         message.data_chat.wait_alerts = False
         message.data_chat.save()
-        message.edit_text(f'Теперь уведомления повторно будут отправляться **{channel.alert_times}** раз')
+
+        text, buttons = show_channel(client, channel)
+        text = '**Количество повторений сохранено**\n\n' + text
+        client.send_message(
+            message.chat.id,
+            text,
+            reply_markup=buttons
+        )
+
+
+    @app.on_callback_query(
+        filters.regex('cancel_alerts ')
+    )
+    def cancel_period(client, update):
+        chat = Chat.objects.get(id=update.message.chat.id)
+        channel_id = int(update.data.split(' ')[1])
+        channel = Channel.objects.get(id=channel_id)
+        chat.current_channel_id = channel_id
+        chat.wait_time = False
+        chat.save()
+
+        update.answer('Отменено')
+
+        text, buttons = show_channel(client, channel)
+        update.edit_message_text(
+            text,
+            reply_markup=buttons
+        )

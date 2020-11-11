@@ -6,6 +6,12 @@ from channels_watchbot.utils import add_chat_to_update
 from data.models import Chat
 
 
+NEW_CHANNEL_TEXT = 'Отлично, привязываем новый канал. ' \
+            'Добавьте меня в участники канала, который хотите привязать, ' \
+            'и перешлите любое сообщение из канала в этот чат.'
+
+CANCEL_TEXT = 'Отменить ❌'
+
 def register(app):
     @app.on_message(
         (filters.private | filters.group) &
@@ -17,11 +23,9 @@ def register(app):
         message.data_chat.save()
         client.send_message(
             message.chat.id,
-            'Отлично, привязываем новый канал. '
-            'Добавьте меня в участники канала, который хотите привязать, '
-            'и перешлите любое сообщение из канала в этот чат.',
+            NEW_CHANNEL_TEXT,
             reply_markup = InlineKeyboardMarkup([
-                [InlineKeyboardButton('Отменить', 'new_cancel')],
+                [InlineKeyboardButton(CANCEL_TEXT, 'new_cancel')],
             ])
         )
 
@@ -32,4 +36,23 @@ def register(app):
         chat = Chat.objects.get(id=update.message.chat.id)
         chat.wait_forward = False
         chat.save()
-        update.edit_message_text('Привязка канала отменена.')
+        update.edit_message_text(
+            'Привязка канала отменена.',
+            reply_markup = InlineKeyboardMarkup([
+                [InlineKeyboardButton('Всё-таки привязываем ↩', 'new_channel')]
+            ])
+        )
+
+    @app.on_callback_query(
+        filters.regex('new_channel')
+    )
+    def new_channel_callback(client, update):
+        chat = Chat.objects.get(id=update.message.chat.id)
+        chat.wait_forward = True
+        chat.save()
+        update.edit_message_text(
+            NEW_CHANNEL_TEXT,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton(CANCEL_TEXT, 'new_cancel')],
+            ])
+        )

@@ -10,7 +10,6 @@ class Chat(models.Model):
     wait_forward       = models.BooleanField(default=False)
     wait_time          = models.BooleanField(default=False)
     wait_alerts        = models.BooleanField(default=False)
-    wait_for_choose_channel = models.BooleanField(default=False)
     current_channel_id = models.IntegerField(null=True, default=None)
 
 
@@ -22,7 +21,7 @@ class Channel(models.Model):
     alerts_left    = models.IntegerField(default=ALERT_TIMES)
     disabled       = models.BooleanField(default=False)
     chat           = models.ForeignKey(Chat, on_delete=models.CASCADE)
-    period         = models.IntegerField(default=0)
+    period         = models.IntegerField(default=30)
     last_message_time = models.DateTimeField(auto_now_add=True)
 
 

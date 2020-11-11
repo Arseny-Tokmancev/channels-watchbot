@@ -16,19 +16,12 @@ def register(app):
             channel = Channel.objects.get(id=channel_id)
             channel.disabled = not channel.disabled
             channel.save()
-            update.answer(f'Канал {"отключен" if channel.disabled else "включен"}')
+            update.answer(f'Канал {"остановлен ⏸" if channel.disabled else "запущен ▶"}')
             text, buttons = show_channel(client, channel)
-            try:
-                client.send(
-                    EditMessage(
-                        peer=client.resolve_peer(update.message.chat.id),
-                        id=update.message.message_id,
-                        reply_markup=buttons.write(),
-                        **(asyncio.run(client.parser.parse(text, 'md')))
-                    )
-                )
-            except:
-                pass
+            update.edit_message_text(
+                text,
+                reply_markup = buttons
+            )
         except Exception as e:
             print(e)
-            update.answer(f'Произошла ошибка при попытке изменить состояние канала.')
+            update.answer('Произошла ошибка при попытке изменить состояние канала.')
