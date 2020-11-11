@@ -16,7 +16,7 @@ def register(app):
         message.data_chat.save()
         channel_list = []
         for channel in message.data_chat.channel_set.all().exclude(period=0):
-            title = client.get_chat(channel.channel_id).title
+            title = channel.get_input_channel(client).title
             channel_list.append([InlineKeyboardButton(title, f'choose_channel {channel.id}')])
         if channel_list:
             text = f'Выберите канал:'
